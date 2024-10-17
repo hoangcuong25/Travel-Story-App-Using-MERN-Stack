@@ -300,7 +300,75 @@ app.delete("/delete-story/:id", authenticationToken, async (req, res) => {
     }
 })
 
+// update isFavourite
+app.put("/update-is-favourite/:id", authenticationToken, async (req, res) => {
+    const { id } = req.params
+    const { isFavourite } = req.body
+    const { userId } = req.user
 
+    try {
+        const travelStory = await TravelStory.findOne({ _id: id, userId: userId })
+
+        if (!travelStory) {
+            return res.status(404).json({ error: true, message: "Travel story not found" })
+        }
+
+        travelStory.isFavourite = isFavourite
+
+        await travelStory.save()
+
+        res.status(200).json({ story: travelStory, message: "Update Successfuly" })
+    } catch (error) {
+        res.status(500).json({ error: true, message: error.message })
+    }
+})
+
+// search travel stories
+app.post("/search", authenticationToken, async (req, res) => {
+    const { query } = req.query
+    const { userId } = req.user
+
+    if (!query) {
+        return res.status(404).json({ error: true, message: "query is required" })
+    }
+
+    try {
+        const searchResults = await TravelStory.find({
+            userId: userId,
+            $or: [
+                { title: { $regex: query, $options: "i" } },
+                { story: { $regex: query, $options: "i" } },
+                { visitedLocation: { $regex: query, $options: "i" } }
+            ]
+        }).sort({ isFavourite: -1 })
+
+        res.status(200).json({ stories: searchResults })
+    } catch (error) {
+        res.status(500).json({ error: true, message: error.message })
+    }
+})
+
+
+// filter travel stories by date range
+app.get("/travel-stories/filter", authenticationToken, async (req, res) => {
+    const { startDate, endDate } = req.query
+    const { userId } = req.user
+
+    try {
+        const start = new Date(parseInt(startDate))
+        const end = new Date(parseInt(endDate))
+
+        const filteredStories = await TravelStory.find({
+            userId: userId,
+            visitedDate: { $gte: start, $lte: end }
+        }).sort({ isFavourite: -1 })
+
+        res.status(200).json({ stories: filteredStories })
+
+    } catch (error) {
+        res.status(500).json({ error: true, message: error.message })
+    }
+})
 
 
 app.listen(8000)
