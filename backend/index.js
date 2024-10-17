@@ -15,7 +15,6 @@ const TravelStory = require("./models/travelStory.model")
 const upload = require("./multer")
 const fs = require("fs")
 const path = require("path")
-const { error } = require("console")
 
 mongoose.connect(config.connectString)
 
@@ -200,12 +199,12 @@ app.post("/image-upload", upload.single("image"), async (req, res) => {
 
 // delete an image from uploads folder
 app.delete("/delete-image", async (req, res) => {
-    const {imageUrl} = req.query
+    const { imageUrl } = req.query
 
     if (!imageUrl) {
         return res
-        .status(400)
-        .json({error: true, message: "imageUrl parameter is required"})
+            .status(400)
+            .json({ error: true, message: "imageUrl parameter is required" })
     }
 
     try {
@@ -216,21 +215,90 @@ app.delete("/delete-image", async (req, res) => {
         const filePath = path.join(__dirname, "uploads", filename)
 
         // check if the file exists
-        if (fs.existsSync(filename)) {
+        if (fs.existsSync(filePath)) {
             // delete the file from the uploads folder
             fs.unlinkSync(filePath)
-            res.status(200).json({message: "Image deleted successfully"})
+            res.status(200).json({ message: "Image deleted successfully" })
         } else {
-            res.status(200).json({error: true, message: "Image not found"})
+            res.status(200).json({ error: true, message: "Image not found" })
         }
     } catch (error) {
-        res.status(500).json({error: true, message: error.message})
+        res.status(500).json({ error: true, message: error.message })
     }
 })
 
 // serve static files from the uploads and assets directory
 app.use("/uploads", express.static(path.join(__dirname, "uploads")))
 app.use("/assets", express.static(path.join(__dirname, "assets")))
+
+// edit travel stories
+app.put("/edit-story/:id", authenticationToken, async (req, res) => {
+    const { id } = req.params
+    const { title, story, visitedLocation, imageUrl, visitedDate } = req.body
+    const { userId } = req.user
+
+    if (!title || !story || !visitedLocation || !imageUrl || !visitedDate) {
+        return res
+            .status(400)
+            .json({ error: true, message: "All fields are required" })
+    }
+
+    const parsedVisitedDate = new Date(parseInt(visitedDate))
+
+    try {
+        const travelStory = await TravelStory.findOne({ _id: id, userId: userId })
+
+        if (!travelStory) {
+            return res.status(404).json({ error: true, message: "Travel story not found" })
+        }
+
+        const placeholderImgUrl = `http://localhost:8000/assets/placeholder.png`
+
+        travelStory.title = title
+        travelStory.story = story
+        travelStory.visitedLocation = visitedLocation
+        travelStory.imageUrl = imageUrl || placeholderImgUrl
+        travelStory.visitedDate = parsedVisitedDate
+
+        await travelStory.save()
+        res.status(200).json({ story: travelStory, message: "Update Successfully" })
+    } catch (error) {
+        res.status(500).json({ error: true, message: error.message })
+    }
+})
+
+// delete a travel story]
+app.delete("/delete-story/:id", authenticationToken, async (req, res) => {
+    const { id } = req.params
+    const { userId } = req.user
+
+    try {
+        const travelStory = await TravelStory.findOne({ _id: id, userId: userId })
+
+        if (!travelStory) {
+            return res
+                .status(404)
+                .json({ error: true, message: "Travel story not found" })
+        }
+
+        await travelStory.deleteOne({ _id: id, userId: userId })
+
+        const imageUrl = travelStory.imageUrl
+        const filename = path.basename(imageUrl)
+
+        const filePath = path.join(__dirname, "uploads", filename)
+
+        fs.unlink(filePath, (err) => {
+            if (err) {
+                console.error("Falled to delete image file:", err)
+            }
+        })
+
+        res.status(200).json({ message: "Travel story deleted successfully" })
+    } catch (error) {
+        res.status(500).json({ error: true, message: error.message })
+    }
+})
 
 
 
