@@ -42,7 +42,7 @@ app.post("/create-account", async (req, res) => {
             })
     }
 
-    const isUser = await User.findOne({ email })
+    const isUser = await User.findOne({ email: email })
 
     if (isUser) {
         return res
@@ -73,9 +73,9 @@ app.post("/create-account", async (req, res) => {
             user: {
                 fullName: user.fullName,
                 email: user.email,
-                accessToken,
                 message: "Registration Successfully"
-            }
+            },
+            accessToken
         })
 })
 
@@ -89,7 +89,7 @@ app.post("/login", async (req, res) => {
             .json({ message: "Email and Password aare required" })
     }
 
-    const user = await User.findOne({ email })
+    const user = await User.findOne({ email:email })
 
     if (!user) {
         return res

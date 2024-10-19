@@ -40,8 +40,8 @@ const Login = () => {
                 navigate("/dashboard")
             }
         } catch (error) {
-            if (error.res && error.res.data && error.res.data.message) {
-                setError(error.res.data.message)
+            if (error.response && error.response.data && error.response.data.message) {
+                setError(error.response.data.message)
             } else {
                 setError("An unexpected error occurred")
             }
@@ -92,7 +92,7 @@ const Login = () => {
                         <button
                             type='submit'
                             className='btn-primary btn-light'
-                            onClick={() => { navigate("/signUp") }}
+                            onClick={() => { navigate("/signup") }}
                         >
                             CREATE ACCOUNT
                         </button>
