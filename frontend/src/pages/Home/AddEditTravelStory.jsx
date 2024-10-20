@@ -3,6 +3,9 @@ import { MdAdd, MdClose, MdDeleteOutline, MdUpdate } from 'react-icons/md'
 import DateSelector from '../../components/Input/DateSelector'
 import ImageSelector from '../../components/Input/ImageSelector'
 import TagInput from '../../components/Input/TagInput'
+import axiosInstance from "../../utils/axiosInstance"
+import moment from 'moment'
+import { ToastContainer, toast } from 'react-toastify';
 
 const AddEditTravelStory = ({
     storyInfo,
@@ -20,7 +23,34 @@ const AddEditTravelStory = ({
 
     // add new travel story
     const addNewTravelStory = async () => {
+        try {
+            let imageUrl = ""
 
+            // upload image if present
+            if (storyImg) {
+                const imgUploadRes = await uploadImage(storyImg)
+                // get imaga URL
+                imageUrl = imgUploadRes.imageUrl || ""
+            }
+
+            const response = await axiosInstance.post("/add-travel-story", {
+                title,
+                story,
+                imageUrl: imageUrl || "",
+                visitedLocation,
+                visitedDate: visitedDate ? moment(visitedDate).valueOf() : moment().valueOf()
+            })
+
+            if (response.data && response.data.story) {
+                toast.success("Story Added Successfully")
+                // refresh stories
+                getAllTravelStories()
+                // close modal or form
+                onClose()
+            }
+        } catch {
+            console.log("error")
+        }
     }
 
     // update travel story
