@@ -16,9 +16,36 @@ const AddEditTravelStory = ({
     const [storyImg, setStoryImg] = useState(null)
     const [story, setStory] = useState("")
     const [visitedLocation, setVisitedLocation] = useState([])
+    const [error, setError] = useState("")
+
+    // add new travel story
+    const addNewTravelStory = async () => {
+
+    }
+
+    // update travel story
+    const upDateTravelStory = async () => {
+
+    }
 
     const handleAddOrUpdateClick = () => {
+        if (!title) {
+            setError("Please enter the title")
+            return
+        }
 
+        if (!story) {
+            setError("Please enter the story")
+            return
+        }
+
+        setError("")
+
+        if (type === "edit") {
+            upDateTravelStory()
+        } else {
+            addNewTravelStory()
+        }
     }
 
     // delete story image and update the story
@@ -53,6 +80,10 @@ const AddEditTravelStory = ({
                             <MdClose className='text-xl text-slate-400' />
                         </button>
                     </div>
+
+                    {error && (
+                        <p className='text-red-500 text-xs ptt-2 text-right'>{error}</p>
+                    )}
                 </div>
             </div>
 
