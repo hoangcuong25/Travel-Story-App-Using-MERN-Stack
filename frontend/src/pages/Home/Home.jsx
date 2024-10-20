@@ -53,7 +53,7 @@ const Home = () => {
     }
 
     // handle edit story click
-    const handleEit = (data) => { }
+    const handleEdit = (data) => { }
 
     // handle travel story click
     const handleViewStory = (data) => {
@@ -122,7 +122,7 @@ const Home = () => {
 
             <Modal
                 isOpen={openAddEditModal.isShown}
-                onRequestClose={() => { }}
+                onRequestClose={() => {}}
                 style={{
                     overlay: {
                         backgroundColor: "rgba(0,0,0,0.2)",
